@@ -64,14 +64,17 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Interfaces\IOptions.cs" />
     <Compile Include="Interfaces\ISessionManager.cs" />
     <Compile Include="Interfaces\IConnectionManager.cs" />
     <Compile Include="Interfaces\ISpotifyWatcher.cs" />
+    <Compile Include="Models\Options.cs" />
     <Compile Include="Models\StatusEvent.cs" />
     <Compile Include="Models\TrackEvent.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="ServiceConfigurator.cs" />
     <Compile Include="Services\ConnectionManager.cs" />
+    <Compile Include="Services\SessionManager.cs" />
     <Compile Include="Services\SpotifyWatcher.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

@@ -8,23 +8,26 @@ using System.Threading.Tasks;
 using System.Net.Http;
 using Newtonsoft.Json;
 using System.Threading;
-using System.Net.WebSockets;
+using WebSocketSharp;
 
 namespace SpotiSync_Windows.Services
 {
     public class ConnectionManager : IConnectionManager
     {
         private bool _isConnected = false;
-        private bool isHosting = false;
 
-        private string url = "http://localhost/";
+        private IOptions opts;
         private HttpClient client;
         private WebSocket socket;
+        private ISessionManager session;
+
         private CancellationTokenSource token;
 
         public ConnectionManager()
         {
             client = new HttpClient();
+            opts = ServiceConfigurator.GetService<IOptions>();
+            session = ServiceConfigurator.GetService<ISessionManager>();
         }
 
         public bool isConnected
@@ -37,8 +40,8 @@ namespace SpotiSync_Windows.Services
 
         public async Task<User> CreateUser(string userName)
         {
-            var content = new StringContent(JsonConvert.SerializeObject(new { Name = userName }));
-            var result = await client.PostAsync(url + "api/users/new", content);
+            var content = new StringContent(JsonConvert.SerializeObject(new { Name = userName }), Encoding.UTF8, "application/json");
+            var result = await client.PostAsync(opts.serverUrl + "users/new", content);
 
             if (result.IsSuccessStatusCode)
             {
@@ -52,15 +55,13 @@ namespace SpotiSync_Windows.Services
 
         public async Task<bool> Connect(string session, User user)
         {
-            var result = await client.GetAsync(url + "api/sessions/join" + session+ "/" + user.Id);
+            var result = await client.GetAsync(opts.serverUrl + "sessions/join/" + session+ "/" + user.Id);
             if (result.IsSuccessStatusCode)
-            {
-               
+            {               
+                socket = new WebSocket(opts.socketUrl + "?userId=" + user.Id);
+                socket.Connect();
+                socket.OnMessage += OnMessage;
 
-                new Task(async () =>
-                {
-                   
-                }).Start();
                 return true;
             } else
             {
@@ -70,7 +71,7 @@ namespace SpotiSync_Windows.Services
 
         public async Task<string> StartSession(User user)
         {
-            var result = await client.GetAsync(url + "api/sessions/new" + user.Id);
+            var result = await client.GetAsync(opts.serverUrl + "sessions/new" + user.Id);
             if (result.IsSuccessStatusCode)
             {
                 return JsonConvert.DeserializeObject<dynamic>(await result.Content.ReadAsStringAsync()).id;
@@ -81,9 +82,28 @@ namespace SpotiSync_Windows.Services
             }
         }
 
-        public void SetTrack(TrackEvent newTrack)
+        public void Disconnect()
         {
-            throw new NotImplementedException();
+            if (socket != null)
+            {
+                socket.OnMessage -= OnMessage;
+                socket.CloseAsync();
+                socket = null;
+            }
+        }
+
+        private void OnMessage(object sender, MessageEventArgs e)
+        {
+            var json = e.Data;
+            var track = JsonConvert.DeserializeObject<TrackEvent>(json);
+
+            OnTrackChanged(this, track);
+        }
+
+        public async void SetTrack(TrackEvent newTrack)
+        {
+            var content = new StringContent(JsonConvert.SerializeObject(newTrack), Encoding.UTF8, "application/json");
+            await client.PostAsync(opts.serverUrl + $"play/{session.SessionId}/{session.CurrentUser.Id}", content);
         }
     }
 }

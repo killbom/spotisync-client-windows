@@ -1,4 +1,5 @@
 ﻿using SpotiSync_Windows.Interfaces;
+using SpotiSync_Windows.Models;
 using SpotiSync_Windows.Services;
 using System.Windows;
 
@@ -13,6 +14,8 @@ namespace SpotiSync_Windows
         {
             ServiceConfigurator.RegisterService<ISpotifyWatcher, SpotifyWatcher>();
             ServiceConfigurator.RegisterService<IConnectionManager, ConnectionManager>();
+            ServiceConfigurator.RegisterService<ISessionManager, SessionManager>();
+            ServiceConfigurator.RegisterService<IOptions, Options>();
         }
     }
 }

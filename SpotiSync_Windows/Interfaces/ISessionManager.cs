@@ -13,5 +13,6 @@ namespace SpotiSync_Windows.Interfaces
     {
         User CurrentUser { get; set;  }        
         string SessionId { get; set; }
+        bool isHosting { get; set; }
     }
 }

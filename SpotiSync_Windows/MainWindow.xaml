@@ -7,6 +7,9 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
     <Grid>
-        
+        <TextBox HorizontalAlignment="Left" Height="23" Margin="43,56,0,0" TextWrapping="Wrap" Text="{Binding Path=UserName, Mode=TwoWay}" VerticalAlignment="Top" Width="120" />
+        <Button Content="Connect" HorizontalAlignment="Left" Margin="168,56,0,0" VerticalAlignment="Top" Width="82" Height="23" Click="Connect"/>
+        <TextBox HorizontalAlignment="Left" Height="23" Margin="43,98,0,0" TextWrapping="Wrap" Text="{Binding Path=SessionId, Mode=TwoWay}" VerticalAlignment="Top" Width="120" />
+        <Button Content="Join" HorizontalAlignment="Left" Margin="168,98,0,0" VerticalAlignment="Top" Width="82" Height="23" Click="Join"/>
     </Grid>
 </Window>

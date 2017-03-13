@@ -11,32 +11,30 @@ namespace SpotiSync_Windows
 {  
     public static class ServiceConfigurator
     {
-        private static Dictionary<Type, object> _services = new Dictionary<Type, object>();
+        private static Dictionary<Type, Type> _servicesMap = new Dictionary<Type, Type>();
+        private static Dictionary<Type, object> _instances = new Dictionary<Type, object>();
 
-        public static void RegisterService<TKey, TService>()
+        public static void RegisterService<TKey, TService>() where TService : TKey
         {
-            var instance = Activator.CreateInstance(typeof(TService));
-            _services.Add(typeof(TKey), instance);
+            _servicesMap.Add(typeof(TKey), typeof(TService));
         }
 
         public static T GetService<T>() where T : class
         {
-            if (_services.ContainsKey(typeof(T))) 
+            if (!_instances.ContainsKey(typeof(T)) && _servicesMap.ContainsKey(typeof(T))) 
             {
-                var service = _services[typeof(T)];
-                if (service == null)
-                {
-                    var instance = Activator.CreateInstance(typeof(T));
-                    _services[typeof(T)] = instance;
+                var type = _servicesMap[typeof(T)];
+                var instance = Activator.CreateInstance(type);
+                _instances.Add(typeof(T), instance);
 
-                    return instance as T;
-                }
-                else
-                {
-                    return service as T;
-                }
+                return instance as T;
 
-            } else
+            }
+            else if(_instances.ContainsKey(typeof(T)))
+            {
+                return _instances[typeof(T)] as T;
+            }
+            else
             {
                 throw new KeyNotFoundException($"{typeof(T)} is not registered");
             }

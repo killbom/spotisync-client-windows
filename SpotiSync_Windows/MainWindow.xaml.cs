@@ -23,18 +23,47 @@ namespace SpotiSync_Windows
     /// </summary>
     public partial class MainWindow : Window
     {
+        ISpotifyWatcher spotify;
+        IConnectionManager connection;
+        ISessionManager session;        
+
         public MainWindow()
         {
             InitializeComponent();
+            DataContext = this;
 
-            var service = ServiceConfigurator.GetService<ISpotifyWatcher>();
+            spotify = ServiceConfigurator.GetService<ISpotifyWatcher>();
+            connection = ServiceConfigurator.GetService<IConnectionManager>();
+            session = ServiceConfigurator.GetService<ISessionManager>();
 
-            service.OnTrackChanged += PrintTrackName;
+            spotify.OnTrackChanged += PrintTrackName;
+            connection.OnTrackChanged += ServerTrackChange;
         }
+
+        public string UserName { get; set; }
+        public string SessionId { get; set; }
 
         private void PrintTrackName(object sender, TrackEvent args)
         {
-            Console.WriteLine(args.Name + " - " + args.Url);
+            if (session.isHosting)
+            {
+                connection.SetTrack(args);
+            }
+        }
+
+        private void ServerTrackChange(object sender, TrackEvent args)
+        {
+            spotify.SetTrack(args);
+        }
+
+        private async void Connect(object sender, RoutedEventArgs e)
+        {
+            var user = await connection.CreateUser(UserName);
+            session.CurrentUser = user;
+        }
+        private void Join(object sender, RoutedEventArgs e)
+        {
+            connection.Connect(SessionId, session.CurrentUser);
         }
     }
 }
